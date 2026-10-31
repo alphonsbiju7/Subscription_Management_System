@@ -31,7 +31,8 @@
     "scan:secrets": "node scripts/scan-secrets.mjs",
     "licenses": "node scripts/licenses.mjs",
     "docs:api": "tsx scripts/generate-openapi.ts",
-    "demo:otp": "tsx scripts/demo-otp.ts"
+    "demo:otp": "tsx scripts/demo-otp.ts",
+    "chat:configure": "tsx scripts/configure-groq.ts"
   },
   "dependencies": {
     "@prisma/client": "6.19.3",
@@ -43,6 +44,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-rate-limit": "^8.2.1",
+    "groq-sdk": "^1.6.0",
     "helmet": "^8.1.0",
     "luxon": "^3.7.2",
     "nodemailer": "^10.3.1",

@@ -46,6 +46,7 @@ import { Account, Settings, Invite } from "./account";
 import { Dashboard } from "./dashboard";
 import { ResourcePage, DetailPage, resources } from "./resources";
 import { Loading } from "./components";
+import { Chatbot } from "./chatbot";
 import "./styles.css";
 import "./readability.css";
 const client = new QueryClient({
@@ -374,6 +375,7 @@ function Workspace() {
           </footer>
         </main>
       </div>
+      {!user.requiresMfa && <Chatbot key={`${user.id}:${user.role}`} user={user} />}
       {toast && (
         <div className="toast" role="status">
           <ShieldCheck size={18} />

@@ -19,6 +19,7 @@ const schema = z.object({
   SMTP_SECURE: z.enum(["true", "false"]).default("false"),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
+  GROQ_MODEL: z.string().trim().min(1).default("openai/gpt-oss-20b"),
 });
 export const config = schema.parse(process.env);
 if (

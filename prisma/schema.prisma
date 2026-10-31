@@ -668,3 +668,9 @@ model Setting {
   value     Json
   updatedAt DateTime @updatedAt
 }
+
+model IntegrationCredential {
+  name           String   @id
+  encryptedValue String
+  updatedAt      DateTime @default(now()) @updatedAt
+}
