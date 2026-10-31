@@ -176,8 +176,10 @@ function Workspace() {
     setToast(s);
     window.setTimeout(() => setToast(""), 5000);
   };
-  function onAuth() {
-    void client.invalidateQueries();
+  async function onAuth() {
+    await client.cancelQueries();
+    client.removeQueries({ predicate: (query) => query.queryKey[0] !== "me" });
+    await client.fetchQuery({ queryKey: ["me"], queryFn: () => api<User>("/me"), staleTime: 0 });
   }
   const authMode =
     location.pathname === "/register"

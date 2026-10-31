@@ -23,6 +23,11 @@ const schema = z.object({
 });
 export const config = schema.parse(process.env);
 if (
+  new URL(config.BETTER_AUTH_URL).origin !== new URL(config.WEB_ORIGIN).origin ||
+  config.WEB_ORIGIN !== new URL(config.WEB_ORIGIN).origin
+)
+  throw new Error("WEB_ORIGIN must be an origin without a trailing slash and must match the public BETTER_AUTH_URL origin");
+if (
   config.NODE_ENV === "production" &&
   (!config.WEB_ORIGIN.startsWith("https://") ||
     !config.BETTER_AUTH_URL.startsWith("https://"))

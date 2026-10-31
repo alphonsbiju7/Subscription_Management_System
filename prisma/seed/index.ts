@@ -10,11 +10,14 @@ import { DateTime } from "luxon";
 import { totp } from "../../scripts/totp.js";
 import type { Role } from "@prisma/client";
 import { money, D } from "../../packages/billing-engine/src/index.js";
+import { ensureHackathonDemoUsers, seedHackathonDemoFixtures } from "./demo-users.js";
 if (config.NODE_ENV === "production")
   throw new Error("Demo seed is forbidden in production");
+const hackathonDemo = await ensureHackathonDemoUsers();
 if (await db.setting.findUnique({ where: { key: "demo-seeded" } })) {
+  await seedHackathonDemoFixtures(hackathonDemo);
   console.log(
-    "Demo data already exists. Credentials remain in .local/demo-credentials.json.",
+    "Demo data already exists. Original credentials remain in .local/demo-credentials.json; five-role demo credentials are in .local/hackathon-demo-login.txt.",
   );
   await db.$disconnect();
   process.exit(0);
@@ -490,4 +493,5 @@ await writeFile(
 console.log(
   "Seeded database. Random credentials and demo authenticator secrets are in ignored .local/demo-credentials.json. Use npm run demo:otp -- admin or finance for a current code.",
 );
+await seedHackathonDemoFixtures(hackathonDemo);
 await db.$disconnect();

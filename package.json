@@ -32,6 +32,7 @@
     "licenses": "node scripts/licenses.mjs",
     "docs:api": "tsx scripts/generate-openapi.ts",
     "demo:otp": "tsx scripts/demo-otp.ts",
+    "demo:users": "tsx scripts/show-demo-users.ts",
     "chat:configure": "tsx scripts/configure-groq.ts"
   },
   "dependencies": {

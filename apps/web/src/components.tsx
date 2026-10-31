@@ -94,6 +94,7 @@ export type Field = {
   options?: { value: string; label: string }[];
   initial?: string;
   hint?: string;
+  autoComplete?: string;
 };
 export function Form({
   fields,
@@ -101,6 +102,7 @@ export function Form({
   pending,
   error,
   submit = "Save record",
+  pendingLabel = "Saving…",
   extra,
 }: {
   fields: Field[];
@@ -108,6 +110,7 @@ export function Form({
   pending?: boolean;
   error?: unknown;
   submit?: string;
+  pendingLabel?: string;
   extra?: ReactNode;
 }) {
   const schema = z.object(
@@ -155,6 +158,7 @@ export function Form({
               <input
                 aria-label={f.label}
                 type={f.type ?? "text"}
+                autoComplete={f.autoComplete}
                 step={f.type === "number" ? "any" : undefined}
                 {...register(f.name)}
               />
@@ -172,7 +176,7 @@ export function Form({
       <ErrorBox error={error} />
       <div className="form-footer">
         <button className="button primary" disabled={pending}>
-          {pending ? "Saving…" : submit}
+          {pending ? pendingLabel : submit}
         </button>
       </div>
     </form>

@@ -7,6 +7,7 @@ export default defineConfig({
   fullyParallel: false,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
+    channel: process.env.PLAYWRIGHT_CHANNEL,
     baseURL: "http://localhost:5173",
     actionTimeout: 10000,
     trace: "retain-on-failure",
