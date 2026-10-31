@@ -19,6 +19,7 @@ describe("authorization and tampering", () => {
     expect(
       safeRequestPath("/api/auth/reset-password/private-recovery-token"),
     ).toBe("/api/auth/reset-password/:token");
+    expect(safeRequestPath("/api/auth/reset-password/private-recovery-token/")).toBe("/api/auth/reset-password/:token");
     expect(safeRequestPath("/api/v1/invoices/example")).toBe(
       "/api/v1/invoices/example",
     );

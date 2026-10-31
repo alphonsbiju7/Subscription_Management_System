@@ -25,7 +25,7 @@ import { admin } from "./modules/admin.js";
 import { documents } from "./modules/documents.js";
 export function safeRequestPath(path: string) {
   return path.replace(
-    /^\/api\/auth\/reset-password\/[^/]+$/,
+    /^\/api\/auth\/reset-password\/.*$/,
     "/api/auth/reset-password/:token",
   );
 }
