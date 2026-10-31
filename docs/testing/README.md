@@ -4,7 +4,8 @@ Recorded **31 October 2026** on Windows 11 / Node 24.9.0 using real local Postgr
 
 | Check | Result |
 |---|---|
-| `npm ci --include=optional` | Executed; Windows native dependencies explicitly included in final lockfile. Embedded PostgreSQL must be stopped during reinstall because its DLLs are locked |
+| Fresh committed checkout | Install → setup → generate → build → 32 unit tests → four migrations into a blank isolated database → random seed → API/security tests → both browser journeys all passed |
+| `npm ci --include=optional` | Passed in the clean checkout; Windows native dependencies explicitly included in final lockfile. Embedded PostgreSQL must be stopped during reinstall because its DLLs are locked |
 | `npm run db:generate` | Passed |
 | `npm run db:migrate` | Four migrations applied successfully to development and benchmark databases |
 | Prisma live schema → datamodel diff | **No difference detected** |
@@ -12,7 +13,7 @@ Recorded **31 October 2026** on Windows 11 / Node 24.9.0 using real local Postgr
 | `npm run lint` | Passed |
 | `npm run build` | Passed, frontend and compiled API/worker; one large frontend chunk warning remains (~913 kB uncompressed / 277 kB gzip), plus harmless upstream annotation warnings |
 | `npm test` | **32 unit tests passed** |
-| `npm run test:integration` | **31 API/integration/security tests passed** in three files |
+| `npm run test:integration` | **32 API/integration/security tests passed** in three files, including recovery-token log-path redaction |
 | `npm run test:e2e` | **2 Chromium scenarios passed** (22.5 seconds final run) |
 | `npm run test:performance` | Passed target on the workload below |
 | `npm audit` | **0 vulnerabilities** reported in final lockfile scan |

@@ -418,17 +418,18 @@ finance.post(
   },
 );
 finance.get("/credits", async (req, res) => {
+  const q = pageInput.parse(req.query);
   const where = {
-    ...(req.query.customerId
-      ? { customerId: String(req.query.customerId) }
-      : {}),
+    ...(q.customerId ? { customerId: q.customerId } : {}),
     ...customerScope(req.actor),
+    reason: { contains: q.search, mode: "insensitive" as const },
   };
   res.json({
     items: await db.creditEntry.findMany({
       where,
       include: { customer: true, applications: true },
-      take: 100,
+      take: q.limit,
+      skip: (q.page - 1) * q.limit,
       orderBy: { createdAt: "desc" },
     }),
     adjustments: await db.adjustment.findMany({
@@ -437,6 +438,7 @@ finance.get("/credits", async (req, res) => {
       take: 100,
       orderBy: { createdAt: "desc" },
     }),
+    total: await db.creditEntry.count({ where }),
   });
 });
 finance.post(

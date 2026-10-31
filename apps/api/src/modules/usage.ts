@@ -3,7 +3,11 @@ import { z } from "zod";
 import { db, transaction, audit } from "../db.js";
 import { allow, own, customerScope } from "../access.js";
 import { check } from "../errors.js";
-import { date, money } from "../../../../packages/validation/src/index.js";
+import {
+  date,
+  money,
+  pageInput,
+} from "../../../../packages/validation/src/index.js";
 import { D, sum } from "../../../../packages/billing-engine/src/index.js";
 import type { Contract } from "./sales.js";
 export const usage = Router();
@@ -22,22 +26,26 @@ usage.post("/usage/meters", allow("ADMIN"), async (req, res) => {
   res.status(201).json(await db.usageMeter.create({ data: input }));
 });
 usage.get("/usage", async (req, res) => {
+  const q = pageInput.parse(req.query);
   const id = z.string().optional().parse(req.query.subscriptionId);
   if (id) {
     const sub = await db.subscription.findUnique({ where: { id } });
     check(sub, "Subscription not found", 404);
     own(req.actor, sub.customerId);
   }
+  const where = {
+    ...(id ? { subscriptionId: id } : {}),
+    subscription: customerScope(req.actor),
+    eventId: { contains: q.search, mode: "insensitive" as const },
+  };
   const items = await db.usageEvent.findMany({
-    where: {
-      ...(id ? { subscriptionId: id } : {}),
-      subscription: customerScope(req.actor),
-    },
+    where,
     include: { meter: true, subscription: { select: { number: true } } },
     orderBy: { occurredAt: "desc" },
-    take: 100,
+    take: q.limit,
+    skip: (q.page - 1) * q.limit,
   });
-  res.json({ items });
+  res.json({ items, total: await db.usageEvent.count({ where }) });
 });
 usage.post("/usage", allow("ADMIN"), async (req, res) => {
   const input = z

@@ -242,11 +242,16 @@ reports.get(
   },
 );
 reports.get("/notifications", async (req, res) => {
+  const q = pageInput.parse(req.query);
   const user = await db.user.findUnique({ where: { id: req.actor.id } });
-  const where =
+  const recipientScope =
     req.actor.role === "ADMIN" || req.actor.role === "FINANCE"
       ? {}
       : { recipient: user?.email ?? "__none__" };
+  const where = {
+    ...recipientScope,
+    subject: { contains: q.search, mode: "insensitive" as const },
+  };
   const items = await db.outbox.findMany({
     where,
     select: {
@@ -261,9 +266,10 @@ reports.get("/notifications", async (req, res) => {
       lastError: true,
     },
     orderBy: { createdAt: "desc" },
-    take: 100,
+    take: q.limit,
+    skip: (q.page - 1) * q.limit,
   });
-  res.json({ items });
+  res.json({ items, total: await db.outbox.count({ where }) });
 });
 reports.get("/audit", allow("ADMIN", "FINANCE"), async (req, res) => {
   const q = pageInput.parse(req.query),

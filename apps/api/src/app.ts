@@ -23,6 +23,12 @@ import { integrity } from "./modules/integrity.js";
 import { usage } from "./modules/usage.js";
 import { admin } from "./modules/admin.js";
 import { documents } from "./modules/documents.js";
+export function safeRequestPath(path: string) {
+  return path.replace(
+    /^\/api\/auth\/reset-password\/[^/]+$/,
+    "/api/auth/reset-password/:token",
+  );
+}
 export function createApp() {
   const app = express();
   app.disable("x-powered-by");
@@ -31,12 +37,13 @@ export function createApp() {
     res.setHeader("X-Request-Id", req.requestId);
     res.setHeader("Cache-Control", "no-store");
     const start = performance.now();
+    const requestPath = safeRequestPath(req.path);
     res.on("finish", () =>
       logger.info(
         {
           requestId: req.requestId,
           method: req.method,
-          path: req.path,
+          path: requestPath,
           status: res.statusCode,
           durationMs: Math.round(performance.now() - start),
         },
@@ -124,16 +131,14 @@ export function createApp() {
   const errors: ErrorRequestHandler = (error: unknown, req, res, _next) => {
     if (res.headersSent) return;
     if (error instanceof z.ZodError) {
-      res
-        .status(400)
-        .json({
-          error: "Validation failed",
-          details: error.issues.map((i) => ({
-            path: i.path.join("."),
-            message: i.message,
-          })),
-          requestId: req.requestId,
-        });
+      res.status(400).json({
+        error: "Validation failed",
+        details: error.issues.map((i) => ({
+          path: i.path.join("."),
+          message: i.message,
+        })),
+        requestId: req.requestId,
+      });
       return;
     }
     if (error instanceof ApiError) {
@@ -144,15 +149,13 @@ export function createApp() {
     }
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       const status = error.code === "P2025" ? 404 : 409;
-      res
-        .status(status)
-        .json({
-          error:
-            status === 404
-              ? "Record not found"
-              : "The operation conflicts with an existing record or financial constraint",
-          requestId: req.requestId,
-        });
+      res.status(status).json({
+        error:
+          status === 404
+            ? "Record not found"
+            : "The operation conflicts with an existing record or financial constraint",
+        requestId: req.requestId,
+      });
       return;
     }
     if (error instanceof SyntaxError) {
@@ -166,12 +169,10 @@ export function createApp() {
       },
       "request failed",
     );
-    res
-      .status(500)
-      .json({
-        error: "Operation failed. Contact support with this request ID.",
-        requestId: req.requestId,
-      });
+    res.status(500).json({
+      error: "Operation failed. Contact support with this request ID.",
+      requestId: req.requestId,
+    });
   };
   app.use(errors);
   return app;

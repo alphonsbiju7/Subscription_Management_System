@@ -5,6 +5,7 @@ import { account, app, fixture } from "../support.js";
 import { billOne } from "../../apps/api/src/modules/billing.js";
 import { db, digest } from "../../apps/api/src/db.js";
 import { config } from "../../apps/api/src/config.js";
+import { safeRequestPath } from "../../apps/api/src/app.js";
 let admin: Awaited<ReturnType<typeof account>>,
   alice: Awaited<ReturnType<typeof account>>,
   bob: Awaited<ReturnType<typeof account>>;
@@ -14,6 +15,14 @@ beforeAll(async () => {
   bob = await account("CUSTOMER");
 });
 describe("authorization and tampering", () => {
+  it("redacts recovery tokens from request log paths", () => {
+    expect(
+      safeRequestPath("/api/auth/reset-password/private-recovery-token"),
+    ).toBe("/api/auth/reset-password/:token");
+    expect(safeRequestPath("/api/v1/invoices/example")).toBe(
+      "/api/v1/invoices/example",
+    );
+  });
   it("denies unauthenticated and invalid-cookie access", async () => {
     await request(app).get("/api/v1/invoices").expect(401);
     await request(app)

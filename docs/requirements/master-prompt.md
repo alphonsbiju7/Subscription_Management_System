@@ -1787,43 +1787,43 @@ Use the following repositories as references for behavior and architecture.
 
 Do not blindly copy their code.
 
-1. ERPNext — https://github.com/frappe/erpnext  
+1. ERPNext — https://github.com/frappe/erpnext
    Study customers, quotations, subscriptions, recurring invoices, accounting, taxes, payments and reporting.
 
-2. Odoo — https://github.com/odoo/odoo  
+2. Odoo — https://github.com/odoo/odoo
    Study products, variants, quotations, contract workflows, pricing and business UI. Distinguish Community and commercial-only features.
 
-3. OCA Contract — https://github.com/OCA/contract  
+3. OCA Contract — https://github.com/OCA/contract
    Study recurring contracts, invoice scheduling, quantity changes and termination.
 
-4. Kill Bill — https://github.com/killbill/killbill  
+4. Kill Bill — https://github.com/killbill/killbill
    Study catalog design, lifecycle state machines, subscriptions, recurring billing, proration, invoice and payment processing.
 
-5. Lago — https://github.com/getlago/lago  
+5. Lago — https://github.com/getlago/lago
    Study subscription pricing, advanced billing, usage events, credits, and entitlements.
 
-6. Invoice Ninja — https://github.com/invoiceninja/invoiceninja  
+6. Invoice Ninja — https://github.com/invoiceninja/invoiceninja
    Study invoices, quotations, recurring billing, customer portals, payments, reminders and PDF interfaces. Respect license restrictions.
 
-7. FOSSBilling — https://github.com/FOSSBilling/FOSSBilling  
+7. FOSSBilling — https://github.com/FOSSBilling/FOSSBilling
    Study customer management, recurring-service billing, notifications, payment providers and administrator operations.
 
-8. SolidInvoice — https://github.com/SolidInvoice/SolidInvoice  
+8. SolidInvoice — https://github.com/SolidInvoice/SolidInvoice
    Study quotations, recurring invoices, financial precision, tax rules, payments and invoice states.
 
-9. Akaunting — https://github.com/akaunting/akaunting  
+9. Akaunting — https://github.com/akaunting/akaunting
    Study financial dashboards, transaction tracking and accounting-oriented reporting.
 
-10. Dolibarr — https://github.com/Dolibarr/dolibarr  
+10. Dolibarr — https://github.com/Dolibarr/dolibarr
     Study products, contracts, commercial proposals, subscriptions and invoices.
 
-11. Crater — https://github.com/crater-invoice-inc/crater  
+11. Crater — https://github.com/crater-invoice-inc/crater
     Study invoice and estimate UI. Verify implemented features rather than assuming roadmap entries exist.
 
-12. OpenMeter — https://github.com/openmeterio/openmeter  
+12. OpenMeter — https://github.com/openmeterio/openmeter
     Study usage metering, entitlements, credits and billing-related API design.
 
-13. Stripe Subscription Samples — https://github.com/stripe-samples/subscription-use-cases  
+13. Stripe Subscription Samples — https://github.com/stripe-samples/subscription-use-cases
     Study checkout, subscription integration, webhooks and payment sandbox workflows.
 
 The goal is to understand established design patterns and implement an original, coherent Brightloop application.
