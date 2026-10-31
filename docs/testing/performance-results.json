@@ -1,0 +1,128 @@
+{
+  "at": "2026-10-31T07:48:51.737Z",
+  "machine": {
+    "platform": "win32",
+    "release": "10.0.26200",
+    "cpu": "AMD Ryzen 7 7445HS w/ Radeon 740M Graphics     ",
+    "cores": 12,
+    "memoryGiB": 15,
+    "node": "v24.9.0"
+  },
+  "dataset": {
+    "subscriptions": 5000,
+    "invoices": 20000,
+    "customers": 1000
+  },
+  "workload": "Local Express/Supertest with real PostgreSQL, 3 warmups then 50 requests per endpoint at concurrency 5; excludes browser paint and external network",
+  "measurements": [
+    {
+      "endpoint": "/subscriptions?limit=25",
+      "samples": 50,
+      "p50Ms": 27,
+      "p95Ms": 113,
+      "maxMs": 200
+    },
+    {
+      "endpoint": "/invoices?limit=25",
+      "samples": 50,
+      "p50Ms": 35,
+      "p95Ms": 59,
+      "maxMs": 95
+    },
+    {
+      "endpoint": "/customers?limit=25",
+      "samples": 50,
+      "p50Ms": 13,
+      "p95Ms": 20,
+      "maxMs": 21
+    },
+    {
+      "endpoint": "/reports/dashboard",
+      "samples": 50,
+      "p50Ms": 436,
+      "p95Ms": 569,
+      "maxMs": 577
+    }
+  ],
+  "queryPlan": [
+    {
+      "QUERY PLAN": [
+        {
+          "Plan": {
+            "Node Type": "Limit",
+            "Parallel Aware": false,
+            "Async Capable": false,
+            "Startup Cost": 0.28,
+            "Total Cost": 7.03,
+            "Plan Rows": 100,
+            "Plan Width": 22,
+            "Actual Startup Time": 0.019,
+            "Actual Total Time": 0.04,
+            "Actual Rows": 100,
+            "Actual Loops": 1,
+            "Disabled": false,
+            "Shared Hit Blocks": 4,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0,
+            "Plans": [
+              {
+                "Node Type": "Index Scan",
+                "Parent Relationship": "Outer",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Scan Direction": "Forward",
+                "Index Name": "Subscription_status_nextBillingAt_idx",
+                "Relation Name": "Subscription",
+                "Alias": "Subscription",
+                "Startup Cost": 0.28,
+                "Total Cost": 337.78,
+                "Plan Rows": 5000,
+                "Plan Width": 22,
+                "Actual Startup Time": 0.019,
+                "Actual Total Time": 0.033,
+                "Actual Rows": 100,
+                "Actual Loops": 1,
+                "Disabled": false,
+                "Index Cond": "(status = 'ACTIVE'::\"SubscriptionStatus\")",
+                "Rows Removed by Index Recheck": 0,
+                "Index Searches": 1,
+                "Shared Hit Blocks": 4,
+                "Shared Read Blocks": 0,
+                "Shared Dirtied Blocks": 0,
+                "Shared Written Blocks": 0,
+                "Local Hit Blocks": 0,
+                "Local Read Blocks": 0,
+                "Local Dirtied Blocks": 0,
+                "Local Written Blocks": 0,
+                "Temp Read Blocks": 0,
+                "Temp Written Blocks": 0
+              }
+            ]
+          },
+          "Planning": {
+            "Shared Hit Blocks": 7,
+            "Shared Read Blocks": 0,
+            "Shared Dirtied Blocks": 0,
+            "Shared Written Blocks": 0,
+            "Local Hit Blocks": 0,
+            "Local Read Blocks": 0,
+            "Local Dirtied Blocks": 0,
+            "Local Written Blocks": 0,
+            "Temp Read Blocks": 0,
+            "Temp Written Blocks": 0
+          },
+          "Planning Time": 0.132,
+          "Triggers": [],
+          "Execution Time": 0.06
+        }
+      ]
+    }
+  ]
+}

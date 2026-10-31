@@ -1,0 +1,670 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  SALES
+  FINANCE
+  SUPPORT
+  CUSTOMER
+}
+
+enum Interval {
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  DRAFT
+  QUOTATION
+  CONFIRMED
+  ACTIVE
+  PAUSED
+  CLOSED
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  CONFIRMED
+  CANCELLED
+}
+
+enum AdjustmentStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id               String      @id
+  name             String
+  email            String      @unique
+  emailVerified    Boolean     @default(false)
+  image            String?
+  role             Role        @default(CUSTOMER)
+  suspended        Boolean     @default(false)
+  twoFactorEnabled Boolean     @default(false)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  sessions         Session[]
+  accounts         Account[]
+  twoFactors       TwoFactor[]
+  customer         Customer?
+}
+
+model Session {
+  id        String   @id
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model TwoFactor {
+  id                      String    @id
+  secret                  String
+  backupCodes             String
+  userId                  String
+  verified                Boolean   @default(false)
+  failedVerificationCount Int       @default(0)
+  lockedUntil             DateTime?
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model RateLimit {
+  id          String @id
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+}
+
+model Invitation {
+  id        String    @id @default(uuid())
+  email     String
+  role      Role
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Customer {
+  id             String         @id @default(uuid())
+  number         String         @unique @default(uuid())
+  userId         String?        @unique
+  user           User?          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  name           String
+  email          String         @unique
+  company        String         @default("")
+  phone          String         @default("")
+  billingAddress String         @default("")
+  serviceAddress String         @default("")
+  taxId          String         @default("")
+  currency       String         @default("INR")
+  paymentTerms   Int            @default(14)
+  taxExempt      Boolean        @default(false)
+  active         Boolean        @default(true)
+  notes          String         @default("")
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  contacts       Contact[]
+  quotes         Quote[]
+  subscriptions  Subscription[]
+  invoices       Invoice[]
+  payments       Payment[]
+  credits        CreditEntry[]
+  adjustments    Adjustment[]
+
+  @@index([createdAt, id])
+  @@index([name])
+}
+
+model Contact {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  name       String
+  email      String
+  phone      String   @default("")
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  name        String
+  description String    @default("")
+  category    String    @default("Software")
+  type        String    @default("SERVICE")
+  salesPrice  Decimal   @db.Decimal(20, 6)
+  costPrice   Decimal   @default(0) @db.Decimal(20, 6)
+  currency    String    @default("INR")
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  variants    Variant[]
+  plans       Plan[]
+  addons      Addon[]
+
+  @@index([active, name])
+}
+
+model Variant {
+  id              String  @id @default(uuid())
+  productId       String
+  product         Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  name            String
+  sku             String  @unique
+  priceAdjustment Decimal @db.Decimal(20, 6)
+  active          Boolean @default(true)
+
+  @@unique([productId, name])
+}
+
+model Addon {
+  id        String  @id @default(uuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  name      String
+  price     Decimal @db.Decimal(20, 6)
+  active    Boolean @default(true)
+}
+
+model Tax {
+  id           String        @id @default(uuid())
+  name         String
+  components   Json
+  inclusive    Boolean       @default(false)
+  jurisdiction String        @default("IN")
+  startsAt     DateTime      @default(now())
+  endsAt       DateTime?
+  active       Boolean       @default(true)
+  plans        PlanVersion[]
+}
+
+model Discount {
+  id            String                @id @default(uuid())
+  code          String                @unique
+  type          String
+  value         Decimal               @db.Decimal(20, 6)
+  minimum       Decimal               @default(0) @db.Decimal(20, 6)
+  minQuantity   Int                   @default(1)
+  startsAt      DateTime
+  endsAt        DateTime
+  usageLimit    Int?
+  used          Int                   @default(0)
+  customerId    String?
+  productId     String?
+  active        Boolean               @default(true)
+  subscriptions Subscription[]
+  quotes        Quote[]
+  applications  DiscountApplication[]
+}
+
+model Plan {
+  id          String        @id @default(uuid())
+  name        String
+  description String        @default("")
+  productId   String
+  product     Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  active      Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  versions    PlanVersion[]
+}
+
+model PlanVersion {
+  id             String             @id @default(uuid())
+  planId         String
+  plan           Plan               @relation(fields: [planId], references: [id], onDelete: Restrict)
+  version        Int                @default(1)
+  effectiveAt    DateTime           @default(now())
+  availableUntil DateTime?
+  currency       String             @default("INR")
+  interval       Interval
+  price          Decimal            @db.Decimal(20, 6)
+  pricingModel   String             @default("PER_SEAT")
+  tiers          Json               @default("[]")
+  packageSize    Int                @default(1)
+  setupFee       Decimal            @default(0) @db.Decimal(20, 6)
+  minQuantity    Int                @default(1)
+  trialDays      Int                @default(0)
+  canPause       Boolean            @default(true)
+  canCancel      Boolean            @default(true)
+  autoRenew      Boolean            @default(true)
+  taxId          String?
+  tax            Tax?               @relation(fields: [taxId], references: [id], onDelete: Restrict)
+  includedUsage  Decimal            @default(0) @db.Decimal(20, 6)
+  usageRate      Decimal            @default(0) @db.Decimal(20, 6)
+  entitlements   Json               @default("{}")
+  quoteLines     QuoteLine[]
+  items          SubscriptionItem[]
+
+  @@unique([planId, version])
+}
+
+model QuoteTemplate {
+  id           String   @id @default(uuid())
+  name         String
+  terms        String
+  validityDays Int      @default(30)
+  createdAt    DateTime @default(now())
+}
+
+model Quote {
+  id            String         @id @default(uuid())
+  number        String         @unique
+  customerId    String
+  customer      Customer       @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  status        QuoteStatus    @default(DRAFT)
+  revision      Int            @default(1)
+  previousId    String?
+  terms         String         @default("")
+  currency      String         @default("INR")
+  validFrom     DateTime       @default(now())
+  validUntil    DateTime
+  acceptedAt    DateTime?
+  discountId    String?
+  discount      Discount?      @relation(fields: [discountId], references: [id], onDelete: Restrict)
+  createdAt     DateTime       @default(now())
+  lines         QuoteLine[]
+  subscriptions Subscription[]
+
+  @@index([customerId, createdAt])
+}
+
+model QuoteLine {
+  id            String      @id @default(uuid())
+  quoteId       String
+  quote         Quote       @relation(fields: [quoteId], references: [id], onDelete: Restrict)
+  planVersionId String
+  planVersion   PlanVersion @relation(fields: [planVersionId], references: [id], onDelete: Restrict)
+  description   String
+  quantity      Int
+  unitPrice     Decimal     @db.Decimal(20, 6)
+  variantId     String?
+  snapshot      Json
+}
+
+model Subscription {
+  id            String              @id @default(uuid())
+  number        String              @unique
+  customerId    String
+  customer      Customer            @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  quoteId       String?             @unique
+  quote         Quote?              @relation(fields: [quoteId], references: [id], onDelete: Restrict)
+  status        SubscriptionStatus  @default(DRAFT)
+  substate      String?
+  currency      String              @default("INR")
+  interval      Interval
+  startAt       DateTime
+  endAt         DateTime?
+  nextBillingAt DateTime
+  anchorDay     Int
+  timezone      String              @default("Asia/Kolkata")
+  autoRenew     Boolean             @default(true)
+  cancelAtEnd   Boolean             @default(false)
+  discountId    String?
+  discount      Discount?           @relation(fields: [discountId], references: [id], onDelete: Restrict)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  items         SubscriptionItem[]
+  events        SubscriptionEvent[]
+  amendments    Amendment[]
+  invoices      Invoice[]
+  periods       BillingPeriod[]
+  usage         UsageEvent[]
+
+  @@index([status, nextBillingAt])
+  @@index([customerId, createdAt])
+}
+
+model SubscriptionItem {
+  id             String       @id @default(uuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  planVersionId  String
+  planVersion    PlanVersion  @relation(fields: [planVersionId], references: [id], onDelete: Restrict)
+  description    String
+  quantity       Int
+  unitPrice      Decimal      @db.Decimal(20, 6)
+  snapshot       Json
+}
+
+model Amendment {
+  id             String       @id @default(uuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  effectiveAt    DateTime
+  payload        Json
+  appliedAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([appliedAt, effectiveAt])
+}
+
+model SubscriptionEvent {
+  id             String       @id @default(uuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  action         String
+  actorId        String
+  data           Json
+  createdAt      DateTime     @default(now())
+
+  @@index([subscriptionId, createdAt])
+}
+
+model BillingPeriod {
+  id             String       @id @default(uuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  startAt        DateTime
+  endAt          DateTime
+  invoice        Invoice?
+  createdAt      DateTime     @default(now())
+
+  @@unique([subscriptionId, startAt])
+}
+
+model Invoice {
+  id                  String               @id @default(uuid())
+  number              String               @unique
+  customerId          String
+  customer            Customer             @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  subscriptionId      String
+  subscription        Subscription         @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  periodId            String               @unique
+  period              BillingPeriod        @relation(fields: [periodId], references: [id], onDelete: Restrict)
+  status              InvoiceStatus        @default(DRAFT)
+  currency            String
+  issuedAt            DateTime             @default(now())
+  dueAt               DateTime
+  subtotal            Decimal              @db.Decimal(20, 2)
+  discountTotal       Decimal              @db.Decimal(20, 2)
+  taxTotal            Decimal              @db.Decimal(20, 2)
+  creditTotal         Decimal              @default(0) @db.Decimal(20, 2)
+  total               Decimal              @db.Decimal(20, 2)
+  snapshot            Json
+  snapshotHash        String
+  confirmedAt         DateTime?
+  lines               InvoiceLine[]
+  allocations         Allocation[]
+  creditApplications  CreditApplication[]
+  discountApplication DiscountApplication?
+  discrepancies       Discrepancy[]
+  adjustments         Adjustment[]
+  usage               UsageEvent[]
+
+  @@index([customerId, issuedAt])
+  @@index([status, dueAt])
+  @@index([issuedAt])
+}
+
+model InvoiceLine {
+  id          String  @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  description String
+  quantity    Decimal @db.Decimal(20, 6)
+  unitPrice   Decimal @db.Decimal(20, 6)
+  subtotal    Decimal @db.Decimal(20, 2)
+  discount    Decimal @db.Decimal(20, 2)
+  tax         Decimal @db.Decimal(20, 2)
+  total       Decimal @db.Decimal(20, 2)
+  details     Json
+}
+
+model DiscountApplication {
+  id         String   @id @default(uuid())
+  discountId String
+  discount   Discount @relation(fields: [discountId], references: [id], onDelete: Restrict)
+  invoiceId  String   @unique
+  invoice    Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  amount     Decimal  @db.Decimal(20, 2)
+  createdAt  DateTime @default(now())
+}
+
+model Payment {
+  id          String       @id @default(uuid())
+  customerId  String
+  customer    Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  reference   String       @unique
+  amount      Decimal      @db.Decimal(20, 2)
+  currency    String
+  method      String
+  receivedAt  DateTime
+  notes       String       @default("")
+  recordedBy  String
+  createdAt   DateTime     @default(now())
+  allocations Allocation[]
+  adjustments Adjustment[]
+
+  @@index([customerId, receivedAt])
+}
+
+model Allocation {
+  id        String   @id @default(uuid())
+  paymentId String
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  amount    Decimal  @db.Decimal(20, 2)
+  createdAt DateTime @default(now())
+
+  @@index([paymentId, invoiceId])
+}
+
+model Adjustment {
+  id          String           @id @default(uuid())
+  customerId  String
+  customer    Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  paymentId   String?
+  invoiceId   String?
+  invoice     Invoice?         @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  payment     Payment?         @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  kind        String
+  amount      Decimal          @db.Decimal(20, 2)
+  currency    String
+  reason      String
+  status      AdjustmentStatus @default(REQUESTED)
+  requestedBy String
+  approvedBy  String?
+  createdAt   DateTime         @default(now())
+  decidedAt   DateTime?
+  credits     CreditEntry[]
+}
+
+model CreditEntry {
+  id           String              @id @default(uuid())
+  customerId   String
+  customer     Customer            @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  adjustmentId String?
+  adjustment   Adjustment?         @relation(fields: [adjustmentId], references: [id], onDelete: Restrict)
+  currency     String
+  amount       Decimal             @db.Decimal(20, 2)
+  reason       String
+  expiresAt    DateTime?
+  createdAt    DateTime            @default(now())
+  applications CreditApplication[]
+
+  @@index([customerId, expiresAt])
+}
+
+model CreditApplication {
+  id        String      @id @default(uuid())
+  creditId  String
+  credit    CreditEntry @relation(fields: [creditId], references: [id], onDelete: Restrict)
+  invoiceId String
+  invoice   Invoice     @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  amount    Decimal     @db.Decimal(20, 2)
+  createdAt DateTime    @default(now())
+
+  @@unique([creditId, invoiceId])
+}
+
+model UsageMeter {
+  id     String       @id @default(uuid())
+  key    String       @unique
+  name   String
+  unit   String
+  events UsageEvent[]
+}
+
+model UsageEvent {
+  id             String       @id @default(uuid())
+  eventId        String       @unique
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  meterId        String
+  meter          UsageMeter   @relation(fields: [meterId], references: [id], onDelete: Restrict)
+  quantity       Decimal      @db.Decimal(20, 6)
+  occurredAt     DateTime
+  receivedAt     DateTime     @default(now())
+  invoiceId      String?
+  invoice        Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@index([subscriptionId, invoiceId, occurredAt])
+}
+
+model Outbox {
+  id          String    @id @default(uuid())
+  key         String    @unique
+  kind        String
+  recipient   String
+  subject     String
+  payload     Json
+  status      String    @default("PENDING")
+  attempts    Int       @default(0)
+  availableAt DateTime  @default(now())
+  lockedAt    DateTime?
+  lastError   String?
+  sentAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([status, availableAt])
+}
+
+model Job {
+  id          String    @id @default(uuid())
+  key         String    @unique
+  kind        String
+  payload     Json
+  status      String    @default("PENDING")
+  attempts    Int       @default(0)
+  availableAt DateTime  @default(now())
+  lockedAt    DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+  finishedAt  DateTime?
+  runs        JobRun[]
+
+  @@index([status, availableAt])
+}
+
+model JobRun {
+  id         String    @id @default(uuid())
+  jobId      String
+  job        Job       @relation(fields: [jobId], references: [id], onDelete: Restrict)
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  result     Json?
+  error      String?
+}
+
+model Discrepancy {
+  id         String    @id @default(uuid())
+  key        String    @unique
+  invoiceId  String?
+  invoice    Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  kind       String
+  severity   String
+  status     String    @default("DETECTED")
+  evidence   Json
+  reason     String?
+  reviewedBy String?
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String
+  action    String
+  target    String
+  result    String   @default("SUCCESS")
+  data      Json
+  requestId String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([target, createdAt])
+}
+
+model Idempotency {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  actorId   String
+  operation String
+  hash      String
+  response  Json
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

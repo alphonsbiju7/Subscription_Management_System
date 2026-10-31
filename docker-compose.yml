@@ -1,0 +1,76 @@
+name: brightloop
+services:
+  postgres:
+    image: postgres:17-bookworm
+    environment:
+      POSTGRES_USER: brightloop
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a random POSTGRES_PASSWORD}
+      POSTGRES_DB: brightloop
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U brightloop -d brightloop"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports:
+      - "127.0.0.1:8025:8025"
+      - "127.0.0.1:1025:1025"
+    restart: unless-stopped
+  migrate:
+    profiles: ["app"]
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://brightloop:${POSTGRES_PASSWORD}@postgres:5432/brightloop
+    command: ["node", "node_modules/prisma/build/index.js", "migrate", "deploy"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+  api:
+    profiles: ["app"]
+    build: .
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${APP_DATABASE_URL:-postgresql://brightloop:${POSTGRES_PASSWORD}@postgres:5432/brightloop}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+    ports:
+      - "127.0.0.1:3001:3001"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs: /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+  worker:
+    profiles: ["app"]
+    build: .
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${APP_DATABASE_URL:-postgresql://brightloop:${POSTGRES_PASSWORD}@postgres:5432/brightloop}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+    command: ["node", "dist/apps/worker/src/index.js"]
+    healthcheck:
+      disable: true
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs: /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+volumes:
+  pgdata:

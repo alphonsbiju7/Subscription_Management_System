@@ -1,0 +1,83 @@
+{
+  "name": "brightloop-subscription-os",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "concurrently -k -n api,web,worker \"npm:dev:api\" \"npm:dev:web\" \"npm:dev:worker\"",
+    "dev:api": "tsx watch apps/api/src/server.ts",
+    "dev:web": "npm run dev --workspace apps/web",
+    "dev:worker": "tsx watch apps/worker/src/index.ts",
+    "db:local": "node scripts/local-postgres.mjs",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed/index.ts",
+    "typecheck": "tsc --noEmit && npm run typecheck --workspace apps/web",
+    "lint": "eslint .",
+    "build": "npm run typecheck && npm run build --workspace apps/web && tsc -p tsconfig.build.json",
+    "start": "node dist/apps/api/src/server.js",
+    "worker": "node dist/apps/worker/src/index.js",
+    "test": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration tests/security --maxWorkers=1 --no-file-parallelism",
+    "test:e2e": "playwright test",
+    "test:performance": "tsx tests/performance/benchmark.ts",
+    "scan:secrets": "node scripts/scan-secrets.mjs",
+    "licenses": "node scripts/licenses.mjs",
+    "docs:api": "tsx scripts/generate-openapi.ts",
+    "demo:otp": "tsx scripts/demo-otp.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3",
+    "argon2": "^0.44.0",
+    "better-auth": "1.7.14",
+    "cors": "^2.8.5",
+    "csv-parse": "^7.0.3",
+    "decimal.js": "^10.6.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "luxon": "^3.7.2",
+    "nodemailer": "^10.3.1",
+    "pdfkit": "^0.17.2",
+    "pino": "^10.1.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.56.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/luxon": "^3.7.1",
+    "@types/node": "^24.10.0",
+    "@types/nodemailer": "^7.0.3",
+    "@types/pdfkit": "^0.17.3",
+    "@types/supertest": "^6.0.3",
+    "concurrently": "^9.2.1",
+    "embedded-postgres": "^18.1.0-beta.16",
+    "eslint": "^10.14.0",
+    "prisma": "6.19.3",
+    "supertest": "^7.1.4",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.2",
+    "vite": "^7.3.7",
+    "vitest": "^4.0.6"
+  },
+  "overrides": {
+    "deepmerge-ts": "8.0.2",
+    "minimatch": "^11.0.1",
+    "vite": "$vite"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "^1.32.0",
+    "lightningcss-win32-x64-msvc": "^1.32.0"
+  }
+}

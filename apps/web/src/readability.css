@@ -1,0 +1,126 @@
+/* Keep financial and operational text legible across desktop and mobile. */
+.table-wrap {
+  position: relative;
+}
+.sr-only {
+  left: 0;
+  top: 0;
+}
+.nav-group a {
+  font-size: 12px;
+}
+.nav-label {
+  font-size: 9px;
+}
+.workspace-switch strong {
+  font-size: 12px;
+}
+.workspace-switch small {
+  font-size: 10px;
+}
+.breadcrumb {
+  font-size: 11px;
+}
+.user-control strong {
+  font-size: 12px;
+}
+.user-control small {
+  font-size: 10px;
+}
+.environment-badge {
+  font-size: 10px;
+}
+.page-heading p {
+  font-size: 13px;
+}
+.page-heading .eyebrow {
+  font-size: 9px;
+}
+.stat-top {
+  font-size: 12px;
+}
+.stat-bottom {
+  font-size: 10px;
+}
+.stat-card > strong {
+  font-size: 28px;
+}
+.panel-title h2 {
+  font-size: 14px;
+}
+.panel-title p {
+  font-size: 11px;
+}
+.chart-legend {
+  font-size: 10px;
+}
+.chart-summary .muted {
+  font-size: 11px;
+}
+th {
+  font-size: 11px;
+}
+td {
+  font-size: 12px;
+}
+.badge {
+  font-size: 10px;
+}
+.table-button {
+  font-size: 11px;
+}
+.search input {
+  font-size: 12px;
+}
+.pagination {
+  font-size: 11px;
+}
+.form label,
+.quote-line label {
+  font-size: 12px;
+}
+.form label small {
+  font-size: 11px;
+}
+.status-list a,
+.status-list strong {
+  font-size: 12px;
+}
+.portfolio-ring span {
+  font-size: 10px;
+}
+.operations-card p {
+  font-size: 12px;
+}
+.operations-card .button {
+  font-size: 11px;
+}
+.page-footer {
+  font-size: 10px;
+}
+.text-link {
+  font-size: 12px;
+}
+.portfolio-panel > .text-link {
+  font-size: 11px;
+}
+@media (max-width: 650px) {
+  .stat-top {
+    font-size: 10px;
+  }
+  .stat-card > strong {
+    font-size: 25px;
+  }
+  .stat-bottom {
+    font-size: 9px;
+  }
+  .page-heading p {
+    font-size: 12px;
+  }
+  .chart-legend {
+    font-size: 9px;
+  }
+  .page-footer {
+    font-size: 8px;
+  }
+}
