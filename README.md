@@ -59,6 +59,44 @@ Use the account password from that local file, then its current code. Seeding is
 
 New registrations require email verification. The development worker writes messages to **`.local/mail/*.txt`**. Open the matching verification link. Reset and invitation emails use the same local mailbox. API notification history never returns token-containing bodies.
 
+## Groq workflow assistant
+
+Signed-in users can open **Ask Brightloop** in the bottom-right corner for help with quotations,
+subscriptions, billing, payments, and other application workflows. The assistant uses Groq and
+remembers the last three exchanges for follow-up questions. All lookups are read-only.
+On first opening a conversation, it greets the user with capabilities and suggested questions for
+their Admin, Sales, Finance, Support, or Customer role. Reopening preserves the current conversation;
+signing out resets it. Replies use the authenticated server-side role for relevant workflow guidance.
+Admins can retrieve reports and business records for this workspace. Customers can retrieve only their
+own profile, subscriptions, invoices and invoice lines, payments, and usage allowance. Sales, Finance,
+and Support have workflow help only through the chatbot. Ownership is enforced in backend queries;
+the model cannot choose a different user/customer scope, run SQL, or mutate data.
+
+Try **"Summarize last month's revenue"** as Admin or **"What is my outstanding balance?"** as Customer.
+Last month is the previous calendar month in `BUSINESS_TIMEZONE`. Reports use the existing decimal
+report engine, separate invoiced amounts from gross cash receipts, and identify currency and period.
+Outstanding balances use current allocations; MRR/ARR are current metrics. Lists are paginated.
+Answers include links to records/reports returned by successful lookups. A request allows at most
+four tool calls and three model rounds. No authentication secrets or raw internal notes are retrieved.
+
+Conversation history stays in page memory and clears on reload or sign-out; messages and the selected,
+permitted lookup results are sent to Groq. Results are retrieved afresh per request, with no shared
+conversation cache. Provider rate limits can temporarily prevent answers.
+Avoid entering credentials or other secrets.
+
+Run `npm run db:generate` and `npm run db:migrate` to create the integration credential table.
+Temporarily set `GROQ_API_KEY` in the server environment or ignored root `.env`, run
+`npm run chat:configure`, then remove that environment value. The command encrypts the key with
+AES-256-GCM and verifies the stored value. Runtime requests read it from PostgreSQL, not the environment.
+The credential has its own table and is never returned by settings, account, or chatbot data APIs.
+Preserve `BETTER_AUTH_SECRET`: the existing server encryption helper derives its encryption key from it;
+changing that secret requires configuring the provider key again. Database backups also need this server secret.
+`GROQ_MODEL` remains a server environment setting (default `openai/gpt-oss-20b`). Restart the API after
+changing the model. Never use a `VITE_` prefix for a key. Without a stored credential, the rest of the app still runs and the assistant shows a configuration
+message. The authenticated `POST /api/v1/chat` endpoint enforces origin checks, MFA requirements,
+input limits, and a per-user limit of ten requests per minute. Provider failures return a safe error
+and leave the question ready to resend. The migration contains the table definition only, with no live key.
+
 ## Docker alternative
 
 Stop embedded PostgreSQL. Set a random `POSTGRES_PASSWORD` in `.env` and use that password in `DATABASE_URL` on `127.0.0.1:55432/brightloop`.

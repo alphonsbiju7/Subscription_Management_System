@@ -12,6 +12,7 @@ const patterns = [
   /\bgh[pousr]_[A-Za-z0-9]{30,}\b/,
   /\bsk_live_[A-Za-z0-9]{15,}\b/,
   /\bAKIA[0-9A-Z]{16}\b/,
+  /\bgsk_[A-Za-z0-9]{30,}\b/,
 ];
 const matches = [];
 for (const path of files) {

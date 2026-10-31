@@ -23,6 +23,7 @@ import { integrity } from "./modules/integrity.js";
 import { usage } from "./modules/usage.js";
 import { admin } from "./modules/admin.js";
 import { documents } from "./modules/documents.js";
+import { chat } from "./modules/chat.js";
 export function safeRequestPath(path: string) {
   return path.replace(
     /^\/api\/auth\/reset-password\/.*$/,
@@ -108,6 +109,7 @@ export function createApp() {
   app.use(
     "/api/v1",
     authenticate,
+    chat,
     admin,
     customers,
     catalog,
