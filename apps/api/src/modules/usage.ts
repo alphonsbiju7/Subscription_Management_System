@@ -115,7 +115,7 @@ usage.get("/subscriptions/:id/entitlements", async (req, res) => {
   const contracts = sub.items.map((i) => i.snapshot as unknown as Contract);
   const included = sum(contracts.map((c) => c.includedUsage));
   res.json({
-    active: sub.status === "ACTIVE",
+    active: sub.status === "ACTIVE" && sub.substate !== "PAST_DUE",
     features: contracts.map((c) => c.entitlements),
     included: included.toString(),
     consumed,
@@ -123,7 +123,7 @@ usage.get("/subscriptions/:id/entitlements", async (req, res) => {
       ? included.minus(consumed).toString()
       : "0",
     decision:
-      sub.status !== "ACTIVE"
+      sub.status !== "ACTIVE" || sub.substate === "PAST_DUE"
         ? "SUSPENDED"
         : D(consumed).gt(included)
           ? "OVERAGE_BILLABLE"

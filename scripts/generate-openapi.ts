@@ -10,6 +10,9 @@ import {
   discountInput,
   paymentInput,
   invitationInput,
+  demoCheckoutInput,
+  recoveryRetryInput,
+  recoveryPolicyInput,
 } from "../packages/validation/src/index.js";
 const schemas = {
   Customer: customerInput,
@@ -21,13 +24,16 @@ const schemas = {
   Discount: discountInput,
   Payment: paymentInput,
   Invitation: invitationInput,
+  DemoCheckout: demoCheckoutInput,
+  RecoveryRetry: recoveryRetryInput,
+  RecoveryPolicy: recoveryPolicyInput,
 };
 const paths: Record<string, Record<string, unknown>> = {};
 for (const file of await readdir("apps/api/src/modules")) {
   if (!file.endsWith(".ts")) continue;
   const source = await readFile(`apps/api/src/modules/${file}`, "utf8");
   for (const match of source.matchAll(
-    /\w+\.(get|post|patch|put)\('([^']+)'/g,
+    /\w+\.(get|post|patch|put)\(\s*["'](\/[^"']*)["']/g,
   )) {
     const method = match[1]!,
       route = match[2]!,
@@ -39,23 +45,29 @@ for (const file of await readdir("apps/api/src/modules")) {
       }));
     const path = `/api/v1${route.replace(/:(\w+)/g, "{$1}")}`;
     const schemaName =
-      route === "/products"
-        ? "Product"
-        : route === "/plans"
-          ? "Plan"
-          : route === "/quotes"
-            ? "Quote"
-            : route === "/customers"
-              ? "Customer"
-              : route === "/payments"
-                ? "Payment"
-                : route === "/taxes"
-                  ? "Tax"
-                  : route === "/discounts"
-                    ? "Discount"
-                    : route === "/staff/invite"
-                      ? "Invitation"
-                      : undefined;
+      route === "/payments/demo/checkout"
+        ? "DemoCheckout"
+        : route === "/payment-recovery/policy"
+          ? "RecoveryPolicy"
+          : route.startsWith("/payment-recovery/") && route.endsWith("/retry")
+            ? "RecoveryRetry"
+            : route === "/products"
+              ? "Product"
+              : route === "/plans"
+                ? "Plan"
+                : route === "/quotes"
+                  ? "Quote"
+                  : route === "/customers"
+                    ? "Customer"
+                    : route === "/payments"
+                      ? "Payment"
+                      : route === "/taxes"
+                        ? "Tax"
+                        : route === "/discounts"
+                          ? "Discount"
+                          : route === "/staff/invite"
+                            ? "Invitation"
+                            : undefined;
     paths[path] ??= {};
     paths[path]![method] = {
       tags: [file.replace(".ts", "")],
@@ -96,7 +108,14 @@ for (const file of await readdir("apps/api/src/modules")) {
                 name: "Idempotency-Key",
                 in: "header",
                 required:
-                  ["/payments", "/adjustments"].includes(route) ||
+                  [
+                    "/payments",
+                    "/adjustments",
+                    "/payments/demo/checkout",
+                    "/payment-recovery/policy",
+                  ].includes(route) ||
+                  (route.startsWith("/payment-recovery/") &&
+                    route.endsWith("/retry")) ||
                   route.endsWith("/decide") ||
                   route.endsWith("/allocate"),
                 schema: { type: "string", minLength: 8, maxLength: 120 },

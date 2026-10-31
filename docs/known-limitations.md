@@ -4,7 +4,7 @@ The complete 32-section scope is not finished. The core workflow is implemented 
 
 ## Billing and integrations
 
-- Stripe/Razorpay checkout, SDKs, inbound signature/replay verification and outbound webhooks are **not implemented**. There are no fake payment-success controls. Manual finance receipts work locally.
+- Stripe/Razorpay checkout, SDKs, inbound signature/replay verification and outbound webhooks are **not implemented**. Manual receipts and clearly labelled **DEMO MODE** checkout/recovery work locally with persisted Payment/Allocation records; simulations move no real money. See [payment demo boundaries](demo/payments.md).
 - Price phases, introductory pricing, scheduled changes beyond the next boundary, interval-changing amendments, consolidated billing, automatic mid-cycle proration postings and complex partial final periods are deferred. Proration is a tested calculator only.
 - Eight pricing models are calculated by the engine, but graduated/volume tier configuration is currently through the validated API rather than a visual tier editor.
 - One discount per agreement; no stacking. Tax validity/exemption/components are configured snapshots, not automatic jurisdiction determination, GST filing or legal compliance. Changes require new tax/plan versions.

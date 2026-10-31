@@ -202,6 +202,27 @@ export const invitationInput = z
     role: z.enum(roles).exclude(["CUSTOMER"]),
   })
   .strict();
+export const demoCheckoutInput = z
+  .object({
+    invoiceId: id,
+    method: z.enum(["UPI", "CARD", "NET_BANKING"]),
+    portion: z.enum(["FULL", "HALF"]).default("FULL"),
+    scenario: z
+      .enum(["SUCCESS", "FAIL_ONCE", "ALWAYS_FAIL"])
+      .default("SUCCESS"),
+  })
+  .strict();
+export const recoveryRetryInput = z
+  .object({
+    expectedRetryCount: z.number().int().min(0).max(5),
+    outcome: z.enum(["SUCCESS", "FAILURE"]),
+  })
+  .strict();
+export const recoveryPolicyInput = z
+  .object({
+    retryDays: z.array(z.number().int().min(1).max(30)).min(1).max(5),
+  })
+  .strict();
 export const pageInput = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(25),

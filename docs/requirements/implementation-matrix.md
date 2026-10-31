@@ -38,7 +38,8 @@ Source: [the supplied master prompt](master-prompt.md). **COMPLETE** means the s
 | Invoice issue/payment state/PDF/explanation | §13 | COMPLETE | finance.ts/documents.ts; /invoices | Partial/full settlement, immutability, PDF signature, browser download |
 | Manual receipt/multiple allocations/idempotency | §14 | COMPLETE | recordPayment; Allocation | API/browser partial/full, retries, overpayment/reference checks |
 | Bank statement import/reconciliation | §14 | DEFERRED | — | Allocation-based reconciliation only |
-| Stripe/Razorpay/webhook processing | §§14,21 | DEFERRED | docs/integrations.md | No mock success controls; no live provider claim |
+| Stripe/Razorpay/webhook processing | §§14,21 | DEFERRED | docs/integrations.md | No live provider integration; labelled demo simulations are a separate local feature |
+| Demo checkout and smart payment recovery | Hackathon demo | COMPLETE | demo-payments.ts; payment-settlement.ts; payments.tsx; worker | Persisted full/partial receipts, failed attempts, bounded durable retries, ownership and concurrency tests; no real money movement |
 | Credit/prepaid grants/expiry/application | §15 | PARTIAL | Adjustment/CreditEntry/CreditApplication | Independent approval and transactionally applied grant test; full expiry policy suite deferred |
 | Refund requests/approval/unapplied bounds | §15 | COMPLETE | finance.ts; /adjustments | Maker-checker, double-refund and amount-limit tests; records only |
 | Actual refund transfer/allocated reversal/credit-note settlement | §15 | DEFERRED | — | No external money movement or full accounting ledger |

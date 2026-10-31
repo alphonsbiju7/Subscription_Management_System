@@ -5,13 +5,16 @@ export async function api<T = unknown>(
   path: string,
   body?: unknown,
   method = "POST",
+  idempotencyKey?: string,
 ): Promise<T> {
   const res = await fetch(`/api/v1${path}`, {
     method: body === undefined ? "GET" : method,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...(body !== undefined ? { "Idempotency-Key": crypto.randomUUID() } : {}),
+      ...(body !== undefined
+        ? { "Idempotency-Key": idempotencyKey ?? crypto.randomUUID() }
+        : {}),
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });

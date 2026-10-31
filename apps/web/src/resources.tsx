@@ -37,6 +37,7 @@ import {
   type Column,
   type Field,
 } from "./components";
+import { AttemptHistory } from "./payments";
 type Resource = {
   title: string;
   subtitle: string;
@@ -1006,6 +1007,14 @@ export function ResourcePage({
             Confirm <FileCheck2 size={14} />
           </button>
         )}
+        {resource === "invoices" &&
+          ["ADMIN", "FINANCE", "CUSTOMER"].includes(user.role) &&
+          r.status === "CONFIRMED" &&
+          Number(r.outstanding) > 0 && (
+            <Link className="table-button" to={`/checkout/${r.id}`}>
+              Pay Now <CircleDollarSign size={14} />
+            </Link>
+          )}
         {resource === "staff" && admin && r.id !== user.id && (
           <button
             className="table-button"
@@ -1172,6 +1181,12 @@ export function ResourcePage({
           <p>{def.subtitle}</p>
         </div>
         <div className="heading-actions">
+          {resource === "payments" &&
+            ["ADMIN", "FINANCE", "CUSTOMER"].includes(user.role) && (
+              <Link className="button" to="/payment-history">
+                Demo payment history
+              </Link>
+            )}
           {resource === "customers" &&
             ["ADMIN", "SALES", "FINANCE"].includes(user.role) && (
               <a className="button" href="/api/v1/customers/export">
@@ -1460,6 +1475,14 @@ export function DetailPage({
         </div>
         <div className="heading-actions">
           <Badge>{r.status ?? (r.active ? "ACTIVE" : "ARCHIVED")}</Badge>
+          {resource === "invoices" &&
+            ["ADMIN", "FINANCE", "CUSTOMER"].includes(user.role) &&
+            r.status === "CONFIRMED" &&
+            Number(r.outstanding) > 0 && (
+              <Link className="button primary" to={`/checkout/${r.id}`}>
+                Pay Now <CircleDollarSign size={16} />
+              </Link>
+            )}
           {["quotes", "invoices"].includes(resource) && (
             <a
               className="button"
@@ -1884,6 +1907,10 @@ export function DetailPage({
           </section>
         </div>
       )}
+      {resource === "invoices" &&
+        ["ADMIN", "FINANCE", "CUSTOMER"].includes(user.role) && (
+          <AttemptHistory invoiceId={r.id} />
+        )}
       {resource === "invoices" && (
         <section className="panel secondary-panel">
           <div className="panel-title">

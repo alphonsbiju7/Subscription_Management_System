@@ -18,6 +18,7 @@ import { customers } from "./modules/customers.js";
 import { sales } from "./modules/sales.js";
 import { billing } from "./modules/billing.js";
 import { finance } from "./modules/finance.js";
+import { demoPayments } from "./modules/demo-payments.js";
 import { reports } from "./modules/reports.js";
 import { integrity } from "./modules/integrity.js";
 import { usage } from "./modules/usage.js";
@@ -116,6 +117,7 @@ export function createApp() {
     sales,
     billing,
     finance,
+    demoPayments,
     usage,
     reports,
     integrity,

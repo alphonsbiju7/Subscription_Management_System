@@ -1,9 +1,17 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import nodemailer from "nodemailer";
-import { db, transaction, json, outbox, logger } from "../../api/src/db.js";
+import {
+  db,
+  transaction,
+  json,
+  outbox,
+  logger,
+  lock,
+} from "../../api/src/db.js";
 import { config } from "../../api/src/config.js";
 import { decrypt } from "../../api/src/crypto.js";
 import { catchUp } from "../../api/src/modules/billing.js";
+import { processPaymentRecovery } from "../../api/src/modules/demo-payments.js";
 import type { Job, Outbox } from "@prisma/client";
 export async function enqueueDue() {
   const due = await db.subscription.findMany({
@@ -29,9 +37,20 @@ export async function processJob() {
   if (!job) return false;
   const run = await db.jobRun.create({ data: { jobId: job.id } });
   try {
-    if (job.kind !== "BILL") throw new Error("Unsupported durable job kind");
-    const payload = job.payload as { subscriptionId: string };
-    const results = await catchUp(payload.subscriptionId);
+    let results: unknown;
+    if (job.kind === "BILL") {
+      const payload = job.payload as { subscriptionId: string };
+      results = await catchUp(payload.subscriptionId);
+    } else if (job.kind === "DEMO_PAYMENT_RETRY") {
+      const payload = job.payload as {
+        recoveryId: string;
+        retryNumber: number;
+      };
+      results = await processPaymentRecovery(
+        payload.recoveryId,
+        payload.retryNumber,
+      );
+    } else throw new Error("Unsupported durable job kind");
     await transaction(async (tx) => {
       await tx.job.update({
         where: { id: job.id },
@@ -66,7 +85,7 @@ export async function processJob() {
         data: { finishedAt: new Date(), error: message },
       });
     });
-    logger.warn({ jobId: job.id }, "Billing job will retry or needs review");
+    logger.warn({ jobId: job.id }, "Background job will retry or needs review");
   }
   return true;
 }
@@ -161,32 +180,42 @@ export async function queueReminders() {
   const { D, sum } = await import(
     "../../../packages/billing-engine/src/index.js"
   );
-  for (const i of invoices) {
-    if (
-      sum(i.allocations.map((a) => a.amount.toString())).gte(i.total.toString())
-    )
-      continue;
-    const days = Math.floor((Date.now() - i.dueAt.getTime()) / 86400000),
-      step = [...policy.reminderDays]
-        .sort((a, b) => b - a)
-        .find((d) => days >= d);
-    if (!step) continue;
-    await outbox(
-      db,
-      `dunning:${i.id}:${step}`,
-      i.customer.email,
-      `Payment reminder: ${i.number}`,
-      {
-        text: `${i.number} has ${i.currency} ${D(i.total.toString())
-          .minus(sum(i.allocations.map((a) => a.amount.toString())))
-          .toFixed(2)} outstanding. Please contact Brightloop finance.`,
-      },
-    );
-    if (days >= policy.graceDays)
-      await db.subscription.updateMany({
-        where: { id: i.subscriptionId, status: "ACTIVE", substate: null },
-        data: { substate: "PAST_DUE" },
+  for (const candidate of invoices) {
+    await transaction(async (tx) => {
+      // The sweep can be stale by the time this invoice is handled. Serialize
+      // the balance check and hold with checkout, recovery, and manual receipts.
+      await lock(tx, `customer-finance:${candidate.customerId}`);
+      await lock(tx, `invoice:${candidate.id}`);
+      const i = await tx.invoice.findUnique({
+        where: { id: candidate.id },
+        include: { allocations: true, customer: true },
       });
+      const now = new Date();
+      if (!i || i.status !== "CONFIRMED" || i.dueAt >= now) return;
+      const outstanding = D(i.total.toString()).minus(
+        sum(i.allocations.map((a) => a.amount.toString())),
+      );
+      if (outstanding.lte(0)) return;
+      const days = Math.floor((now.getTime() - i.dueAt.getTime()) / 86400000),
+        step = [...policy.reminderDays]
+          .sort((a, b) => b - a)
+          .find((d) => days >= d);
+      if (!step) return;
+      await outbox(
+        tx,
+        `dunning:${i.id}:${step}`,
+        i.customer.email,
+        `Payment reminder: ${i.number}`,
+        {
+          text: `${i.number} has ${i.currency} ${outstanding.toFixed(2)} outstanding. Please contact Brightloop finance.`,
+        },
+      );
+      if (days >= policy.graceDays)
+        await tx.subscription.updateMany({
+          where: { id: i.subscriptionId, status: "ACTIVE", substate: null },
+          data: { substate: "PAST_DUE" },
+        });
+    });
   }
   const soon = await db.subscription.findMany({
     where: {

@@ -27,6 +27,7 @@ import {
   type BillInput,
 } from "../../../../packages/billing-engine/src/index.js";
 import type { Actor } from "../../../../packages/shared-types/src/index.js";
+import { reconcilePaymentSettlement } from "./payment-settlement.js";
 export const finance = Router();
 const invoiceInclude = {
   customer: true,
@@ -87,91 +88,110 @@ export async function recordPayment(
   key: string,
 ) {
   return transaction((tx) =>
-    idempotent(tx, key, actor, "payment", input, async () => {
-      await lock(tx, `customer-finance:${input.customerId}`);
-      const customer = await tx.customer.findUnique({
-        where: { id: input.customerId },
-      });
-      check(customer, "Customer not found", 404);
-      check(customer.currency === input.currency, "Currency mismatch");
-      check(D(input.amount).gt(0), "Payment must be positive");
-      check(
-        input.receivedAt <= new Date(Date.now() + 60000),
-        "Payment date cannot be in the future",
-      );
-      check(
-        new Set(input.allocations.map((a) => a.invoiceId)).size ===
-          input.allocations.length,
-        "Duplicate allocation",
-      );
-      check(
-        sum(input.allocations.map((a) => a.amount)).lte(input.amount),
-        "Allocations exceed payment",
-      );
-      for (const a of [...input.allocations].sort((a, b) =>
-        a.invoiceId.localeCompare(b.invoiceId),
-      )) {
-        await lock(tx, `invoice:${a.invoiceId}`);
-        const invoice = await tx.invoice.findUnique({
-          where: { id: a.invoiceId },
-          include: { allocations: true },
-        });
-        check(
-          invoice?.status === "CONFIRMED" &&
-            invoice.customerId === customer.id &&
-            invoice.currency === input.currency,
-          "Allocation requires an issued invoice belonging to this customer and currency",
-        );
-        const paid = sum(invoice.allocations.map((p) => p.amount.toString()));
-        check(
-          D(a.amount).gt(0) &&
-            D(a.amount).lte(D(invoice.total.toString()).minus(paid)),
-          "Allocation exceeds outstanding balance",
-        );
-      }
-      const payment = await tx.payment.create({
-        data: {
-          customerId: input.customerId,
-          reference: input.reference,
-          amount: money(input.amount),
-          currency: input.currency,
-          method: input.method,
-          receivedAt: input.receivedAt,
-          notes: input.notes,
-          recordedBy: actor.id,
-          allocations: {
-            create: input.allocations.map((a) => ({
-              invoiceId: a.invoiceId,
-              amount: money(a.amount),
-            })),
-          },
-        },
-        include: { allocations: true },
-      });
-      await audit(
-        tx,
-        actor.id,
-        "PAYMENT_RECORDED",
-        payment.id,
-        {
-          reference: payment.reference,
-          amount: payment.amount.toString(),
-          allocations: input.allocations,
-        },
-        actor.requestId,
-      );
-      await outbox(
-        tx,
-        `payment:${payment.id}`,
-        customer.email,
-        "Brightloop payment receipt",
-        {
-          text: `Payment ${payment.reference}: ${payment.currency} ${payment.amount.toString()} received.`,
-        },
-      );
-      return payment;
-    }),
+    idempotent(tx, key, actor, "payment", input, () =>
+      recordPaymentTx(tx, input, actor),
+    ),
   );
+}
+// Internal transactional service shared by manual receipts and simulated checkout.
+// Public manual inputs are still validated by paymentInput; demo amounts come from the invoice balance.
+export async function recordPaymentTx(
+  tx: Tx,
+  input: Omit<z.infer<typeof paymentInput>, "method" | "currency"> & {
+    method: string;
+    currency: string;
+  },
+  actor: Actor,
+) {
+  await lock(tx, `customer-finance:${input.customerId}`);
+  const customer = await tx.customer.findUnique({
+    where: { id: input.customerId },
+  });
+  check(customer, "Customer not found", 404);
+  check(customer.currency === input.currency, "Currency mismatch");
+  check(D(input.amount).gt(0), "Payment must be positive");
+  check(
+    input.receivedAt <= new Date(Date.now() + 60000),
+    "Payment date cannot be in the future",
+  );
+  check(
+    new Set(input.allocations.map((a) => a.invoiceId)).size ===
+      input.allocations.length,
+    "Duplicate allocation",
+  );
+  check(
+    sum(input.allocations.map((a) => a.amount)).lte(input.amount),
+    "Allocations exceed payment",
+  );
+  for (const a of [...input.allocations].sort((a, b) =>
+    a.invoiceId.localeCompare(b.invoiceId),
+  )) {
+    await lock(tx, `invoice:${a.invoiceId}`);
+    const invoice = await tx.invoice.findUnique({
+      where: { id: a.invoiceId },
+      include: { allocations: true },
+    });
+    check(
+      invoice?.status === "CONFIRMED" &&
+        invoice.customerId === customer.id &&
+        invoice.currency === input.currency,
+      "Allocation requires an issued invoice belonging to this customer and currency",
+    );
+    const paid = sum(invoice.allocations.map((p) => p.amount.toString()));
+    check(
+      D(a.amount).gt(0) &&
+        D(a.amount).lte(D(invoice.total.toString()).minus(paid)),
+      "Allocation exceeds outstanding balance",
+    );
+  }
+  const payment = await tx.payment.create({
+    data: {
+      customerId: input.customerId,
+      reference: input.reference,
+      amount: money(input.amount),
+      currency: input.currency,
+      method: input.method,
+      receivedAt: input.receivedAt,
+      notes: input.notes,
+      recordedBy: actor.id,
+      allocations: {
+        create: input.allocations.map((a) => ({
+          invoiceId: a.invoiceId,
+          amount: money(a.amount),
+        })),
+      },
+    },
+    include: { allocations: true },
+  });
+  await audit(
+    tx,
+    actor.id,
+    "PAYMENT_RECORDED",
+    payment.id,
+    {
+      reference: payment.reference,
+      amount: payment.amount.toString(),
+      allocations: input.allocations,
+    },
+    actor.requestId,
+  );
+  await outbox(
+    tx,
+    `payment:${payment.id}`,
+    customer.email,
+    input.method.startsWith("DEMO_")
+      ? "DEMO MODE: Brightloop payment receipt"
+      : "Brightloop payment receipt",
+    {
+      text: `${input.method.startsWith("DEMO_") ? "DEMO MODE: Simulated payment. No real money moved. " : ""}Payment ${payment.reference}: ${payment.currency} ${payment.amount.toString()} received.`,
+    },
+  );
+  await reconcilePaymentSettlement(
+    tx,
+    input.allocations.map((a) => a.invoiceId),
+    actor.id,
+  );
+  return payment;
 }
 finance.get("/invoices", async (req, res) => {
   const q = pageInput.parse(req.query);
@@ -403,6 +423,7 @@ finance.post(
             const result = await tx.allocation.create({
               data: { paymentId, invoiceId: i.id, amount: money(input.amount) },
             });
+            await reconcilePaymentSettlement(tx, [i.id], req.actor.id);
             await audit(
               tx,
               req.actor.id,

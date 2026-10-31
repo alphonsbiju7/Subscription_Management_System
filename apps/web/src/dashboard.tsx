@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { RecoveryOverview } from "./payments";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowDownLeft,
@@ -181,6 +182,9 @@ export function Dashboard({
           </Link>
         )}
       </div>
+      {!report && ["ADMIN", "FINANCE"].includes(user.role) && (
+        <RecoveryOverview compact />
+      )}
       <div className="dashboard-filters">
         <span>
           <CalendarDays size={16} />

@@ -207,7 +207,7 @@ admin.get("/settings", allow("ADMIN"), async (_req, res) =>
     items: await db.setting.findMany(),
     integrations: {
       payments:
-        "Manual payments enabled. External gateways are not configured.",
+        "Manual receipts and DEMO MODE simulated checkout enabled. No external payment gateway.",
       mail:
         config.NODE_ENV === "production"
           ? "SMTP"

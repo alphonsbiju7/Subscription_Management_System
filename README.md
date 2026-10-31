@@ -15,6 +15,7 @@ This is a working database-backed **core application**, not the complete enterpr
 - Independently reviewed credits, unapplied-payment refunds and draft invoice corrections with before/after evidence.
 - Usage billing in arrears, allowance summaries, next-period plan/quantity changes, notifications and ProofBill.
 - Real-data dashboards, MRR/ARR/ARPA, receivable aging and CSV exports.
+- **DEMO MODE checkout and payment recovery:** customer UPI/card/net-banking simulations with persisted receipts, partial settlement, failure history, configurable worker retries, and a finance recovery dashboard. No external gateway or money movement. See the [payment demo guide](docs/demo/payments.md).
 
 ## Stack
 

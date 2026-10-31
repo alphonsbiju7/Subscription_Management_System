@@ -1,0 +1,349 @@
+.demo-payment-banner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+  border: 1px solid #cbdcf4;
+  border-radius: 12px;
+  background: #edf4ff;
+  color: #244a7e;
+}
+.demo-payment-banner svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.demo-payment-banner strong {
+  font-size: 13px;
+}
+.demo-payment-banner p {
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+.payment-checkout-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.85fr) minmax(320px, 1.15fr);
+  gap: 24px;
+  align-items: start;
+}
+.payment-summary,
+.payment-form-panel {
+  padding: 28px;
+}
+.payment-summary h2,
+.payment-form-panel h2 {
+  margin: 8px 0 16px;
+}
+.payment-facts {
+  display: block;
+  margin: 20px 0;
+}
+.payment-facts > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 18px;
+  padding: 12px 0;
+  border-bottom: 1px solid #edf0f5;
+}
+.payment-facts dt {
+  color: #64748b;
+  font-size: 12px;
+}
+.payment-facts dd {
+  margin: 0;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.payment-facts dd a {
+  color: #3066ac;
+}
+.payment-amount {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 18px;
+  background: #f5f8fc;
+  border-radius: 10px;
+}
+.payment-amount > span:first-child {
+  width: 100%;
+  color: #64748b;
+  font-size: 12px;
+}
+.payment-amount strong {
+  font-size: 28px;
+  letter-spacing: -1px;
+}
+.payment-recovery-note {
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid #e6eaf1;
+  border-radius: 10px;
+}
+.payment-recovery-note p,
+.payment-help {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.payment-methods,
+.payment-options {
+  border: 0;
+  padding: 0;
+  margin: 22px 0;
+  min-width: 0;
+}
+.payment-methods {
+  display: grid;
+  gap: 10px;
+}
+.payment-method {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #dce3ee;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.payment-method.selected {
+  background: #eff5ff;
+  border-color: #4779be;
+  box-shadow: 0 0 0 1px #4779be;
+}
+.payment-method input {
+  width: 17px;
+  height: 17px;
+  accent-color: #315e9b;
+}
+.payment-method strong,
+.payment-method small {
+  display: block;
+}
+.payment-method small {
+  margin-top: 3px;
+  color: #64748b;
+  font-size: 11px;
+}
+.payment-options {
+  display: grid;
+  gap: 18px;
+}
+.payment-options label,
+.recovery-retry-controls label,
+.recovery-policy label {
+  display: grid;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.payment-options select,
+.recovery-retry-controls select,
+.recovery-policy input {
+  width: 100%;
+  min-height: 42px;
+  background: white;
+  border: 1px solid #dce3ee;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.payment-submit {
+  width: 100%;
+  min-height: 48px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.payment-result {
+  text-align: center;
+  padding: 24px 16px;
+  border-radius: 12px;
+}
+.payment-result svg {
+  margin: 0 auto 12px;
+}
+.payment-result.success {
+  background: #edf9f2;
+  color: #246c48;
+}
+.payment-result.failure {
+  background: #fff2ef;
+  color: #a73e32;
+}
+.payment-result h2 {
+  margin: 0 0 12px;
+}
+.payment-result > strong {
+  display: block;
+  font-size: 32px;
+}
+.payment-result p {
+  max-width: 540px;
+  margin: 12px auto 0;
+}
+.payment-receipt {
+  padding: 28px;
+  max-width: 830px;
+  margin: 0 auto;
+}
+.payment-receipt-actions,
+.recovery-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.payment-receipt-actions {
+  margin-top: 24px;
+}
+.payment-recovery-overview {
+  margin: 24px 0;
+}
+.recovery-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.recovery-metric {
+  padding: 22px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+.recovery-metric > span,
+.recovery-metric small {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+}
+.recovery-metric strong {
+  display: block;
+  font-size: 32px;
+  letter-spacing: -1px;
+  margin: 10px 0;
+}
+.recovery-metric.success strong {
+  color: #268255;
+}
+.recovery-metric.failure strong {
+  color: #b64d43;
+}
+.recovery-metric.pending strong {
+  color: #b88319;
+}
+.recovery-metric small {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+.recovery-policy {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin: 24px 0;
+  padding: 20px;
+  background: #f0f3f8;
+  border: 1px solid #e1e6ee;
+  border-radius: 12px;
+}
+.recovery-policy p {
+  font-size: 12px;
+  color: #64748b;
+  margin: 6px 0 0;
+}
+.recovery-policy form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+}
+.recovery-retry-controls {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+.recovery-row-actions {
+  min-width: 160px;
+}
+.badge-success,
+.badge-recovered {
+  background: #e7f5ed;
+  color: #247347;
+}
+.badge-failure,
+.badge-exhausted {
+  background: #fdebe8;
+  color: #a73e32;
+}
+.badge-pending {
+  background: #fff4da;
+  color: #916316;
+}
+.badge-demo-mode {
+  background: #e7efff;
+  color: #2c5898;
+}
+@media (max-width: 1050px) {
+  .recovery-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .payment-checkout-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .payment-summary,
+  .payment-form-panel,
+  .payment-receipt {
+    padding: 20px;
+  }
+  .payment-facts > div {
+    gap: 10px;
+  }
+  .payment-receipt-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+  .demo-payment-banner {
+    padding: 15px;
+  }
+  .recovery-metric {
+    padding: 16px;
+  }
+  .recovery-metric > span {
+    min-height: 36px;
+  }
+  .recovery-metric strong {
+    font-size: 27px;
+  }
+  .recovery-policy form,
+  .recovery-policy label {
+    width: 100%;
+  }
+}
+@media print {
+  .sidebar,
+  .topbar,
+  .back-link,
+  .page-footer,
+  .payment-receipt-actions,
+  .assistant-launcher,
+  .assistant-panel {
+    display: none !important;
+  }
+  .main-shell {
+    margin-left: 0 !important;
+  }
+  .payment-receipt {
+    border: 0;
+    max-width: none;
+  }
+}

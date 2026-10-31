@@ -20,6 +20,7 @@ import {
   Layers3,
   FileText,
   Repeat2,
+  RefreshCw,
   Receipt,
   Wallet,
   ChartNoAxesCombined,
@@ -46,6 +47,13 @@ import { Account, Settings, Invite } from "./account";
 import { Dashboard } from "./dashboard";
 import { ResourcePage, DetailPage, resources } from "./resources";
 import { Loading } from "./components";
+import {
+  DemoCheckout,
+  DemoReceipt,
+  PaymentHistory,
+  PaymentRecovery,
+  RecoveryDetail,
+} from "./payments";
 import { Chatbot } from "./chatbot";
 import "./styles.css";
 import "./readability.css";
@@ -92,6 +100,18 @@ const navigation = [
     items: [
       { path: "/invoices", label: "Invoices", icon: Receipt, roles: all },
       { path: "/payments", label: "Payments", icon: Wallet, roles: all },
+      {
+        path: "/payment-history",
+        label: "Demo payment history",
+        icon: CreditCard,
+        roles: ["ADMIN", "FINANCE", "CUSTOMER"],
+      },
+      {
+        path: "/payment-recovery",
+        label: "Payment Recovery",
+        icon: RefreshCw,
+        roles: ["ADMIN", "FINANCE"],
+      },
       {
         path: "/credits",
         label: "Credits & refunds",
@@ -314,6 +334,20 @@ function Workspace() {
             <Account user={user} toast={notify} />
           ) : (
             <Routes>
+              <Route path="/checkout/:invoiceId" element={<DemoCheckout />} />
+              <Route
+                path="/payment-receipts/:attemptId"
+                element={<DemoReceipt />}
+              />
+              <Route path="/payment-history" element={<PaymentHistory />} />
+              <Route
+                path="/payment-recovery"
+                element={<PaymentRecovery user={user} />}
+              />
+              <Route
+                path="/payment-recovery/:recoveryId"
+                element={<RecoveryDetail user={user} />}
+              />
               <Route path="/" element={<Dashboard user={user} />} />
               <Route
                 path="/reports"
@@ -377,7 +411,9 @@ function Workspace() {
           </footer>
         </main>
       </div>
-      {!user.requiresMfa && <Chatbot key={`${user.id}:${user.role}`} user={user} />}
+      {!user.requiresMfa && (
+        <Chatbot key={`${user.id}:${user.role}`} user={user} />
+      )}
       {toast && (
         <div className="toast" role="status">
           <ShieldCheck size={18} />

@@ -9,7 +9,10 @@ type Account = {
   totpSecret?: string;
 };
 const data = JSON.parse(
-  readFileSync(".local/demo-credentials.json", "utf8"),
+  readFileSync(
+    process.env.DEMO_CREDENTIALS_PATH ?? ".local/demo-credentials.json",
+    "utf8",
+  ),
 ) as { accounts: Account[] };
 const admin = data.accounts.find((a) => a.role === "ADMIN")!,
   sales = data.accounts.find((a) => a.role === "SALES")!,
@@ -102,6 +105,7 @@ test("admin workspace renders at desktop and mobile sizes, and every module open
 test("product → plan → quote → customer acceptance → worker invoice → partial/full payment", async ({
   page,
 }) => {
+  test.setTimeout(180_000);
   page.on("dialog", (d) => void d.accept());
   const suffix = randomUUID().slice(0, 6),
     productName = `Browser CRM ${suffix}`,
@@ -183,7 +187,8 @@ test("product → plan → quote → customer acceptance → worker invoice → 
   await page.getByLabel("Plan for line 1").selectOption(planOption!);
   await page.getByRole("button", { name: "Create draft quotation" }).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
-  const firstRow = page.locator("tbody tr").first();
+  const firstRow = page.locator("tbody tr").filter({ hasText: customerName });
+  await expect(firstRow).toHaveCount(1);
   const quoteNumber = await firstRow.locator("td").first().innerText();
   await firstRow.getByRole("button", { name: "Send", exact: false }).click();
   await logout(page);

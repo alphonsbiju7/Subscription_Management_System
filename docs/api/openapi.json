@@ -2044,6 +2044,77 @@
         }
       }
     },
+    "/api/v1/chat": {
+      "post": {
+        "tags": [
+          "chat"
+        ],
+        "operationId": "post__chat",
+        "summary": "POST /chat",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 120
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "See docs/api/README.md and the named module for action-specific validation."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid input or business transition"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Role, MFA or origin rejected"
+          },
+          "404": {
+            "description": "Record not found or outside customer scope"
+          },
+          "409": {
+            "description": "Idempotency or financial conflict"
+          }
+        }
+      }
+    },
     "/api/v1/customers": {
       "get": {
         "tags": [
@@ -2604,6 +2675,644 @@
         }
       }
     },
+    "/api/v1/invoices/{id}/checkout": {
+      "get": {
+        "tags": [
+          "demo-payments"
+        ],
+        "operationId": "get__invoices__id_checkout",
+        "summary": "GET /invoices/:id/checkout",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid input or business transition"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Role, MFA or origin rejected"
+          },
+          "404": {
+            "description": "Record not found or outside customer scope"
+          },
+          "409": {
+            "description": "Idempotency or financial conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/demo/checkout": {
+      "post": {
+        "tags": [
+          "demo-payments"
+        ],
+        "operationId": "post__payments_demo_checkout",
+        "summary": "POST /payments/demo/checkout",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 120
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemoCheckout"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid input or business transition"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Role, MFA or origin rejected"
+          },
+          "404": {
+            "description": "Record not found or outside customer scope"
+          },
+          "409": {
+            "description": "Idempotency or financial conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/demo/history": {
+      "get": {
+        "tags": [
+          "demo-payments"
+        ],
+        "operationId": "get__payments_demo_history",
+        "summary": "GET /payments/demo/history",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid input or business transition"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Role, MFA or origin rejected"
+          },
+          "404": {
+            "description": "Record not found or outside customer scope"
+          },
+          "409": {
+            "description": "Idempotency or financial conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/payments/demo/attempts/{id}": {
+      "get": {
+        "tags": [
+          "demo-payments"
+        ],
+        "operationId": "get__payments_demo_attempts__id",
+        "summary": "GET /payments/demo/attempts/:id",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid input or business transition"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Role, MFA or origin rejected"
+          },
+          "404": {
+            "description": "Record not found or outside customer scope"
+          },
+          "409": {
+            "description": "Idempotency or financial conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/payment-recovery/summary": {
+      "get": {
+        "tags": [
+          "demo-payments"
+        ],
+        "operationId": "get__payment_recovery_summary",
+        "summary": "GET /payment-recovery/summary",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid input or business transition"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Role, MFA or origin rejected"
+          },
+          "404": {
+            "description": "Record not found or outside customer scope"
+          },
+          "409": {
+            "description": "Idempotency or financial conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/payment-recovery/policy": {
+      "get": {
+        "tags": [
+          "demo-payments"
+        ],
+        "operationId": "get__payment_recovery_policy",
+        "summary": "GET /payment-recovery/policy",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid input or business transition"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Role, MFA or origin rejected"
+          },
+          "404": {
+            "description": "Record not found or outside customer scope"
+          },
+          "409": {
+            "description": "Idempotency or financial conflict"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "demo-payments"
+        ],
+        "operationId": "put__payment_recovery_policy",
+        "summary": "PUT /payment-recovery/policy",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 120
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryPolicy"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid input or business transition"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Role, MFA or origin rejected"
+          },
+          "404": {
+            "description": "Record not found or outside customer scope"
+          },
+          "409": {
+            "description": "Idempotency or financial conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/payment-recovery": {
+      "get": {
+        "tags": [
+          "demo-payments"
+        ],
+        "operationId": "get__payment_recovery",
+        "summary": "GET /payment-recovery",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid input or business transition"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Role, MFA or origin rejected"
+          },
+          "404": {
+            "description": "Record not found or outside customer scope"
+          },
+          "409": {
+            "description": "Idempotency or financial conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/payment-recovery/{id}": {
+      "get": {
+        "tags": [
+          "demo-payments"
+        ],
+        "operationId": "get__payment_recovery__id",
+        "summary": "GET /payment-recovery/:id",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid input or business transition"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Role, MFA or origin rejected"
+          },
+          "404": {
+            "description": "Record not found or outside customer scope"
+          },
+          "409": {
+            "description": "Idempotency or financial conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/payment-recovery/{id}/retry": {
+      "post": {
+        "tags": [
+          "demo-payments"
+        ],
+        "operationId": "post__payment_recovery__id_retry",
+        "summary": "POST /payment-recovery/:id/retry",
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 120
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecoveryRetry"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "202": {
+            "description": "Queued"
+          },
+          "400": {
+            "description": "Invalid input or business transition"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Role, MFA or origin rejected"
+          },
+          "404": {
+            "description": "Record not found or outside customer scope"
+          },
+          "409": {
+            "description": "Idempotency or financial conflict"
+          }
+        }
+      }
+    },
     "/api/v1/invoices/{id}/pdf": {
       "get": {
         "tags": [
@@ -3088,74 +3797,6 @@
             }
           }
         },
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created"
-          },
-          "202": {
-            "description": "Queued"
-          },
-          "400": {
-            "description": "Invalid input or business transition"
-          },
-          "401": {
-            "description": "Sign-in required"
-          },
-          "403": {
-            "description": "Role, MFA or origin rejected"
-          },
-          "404": {
-            "description": "Record not found or outside customer scope"
-          },
-          "409": {
-            "description": "Idempotency or financial conflict"
-          }
-        }
-      }
-    },
-    "/api/v1Idempotency-Key": {
-      "get": {
-        "tags": [
-          "finance"
-        ],
-        "operationId": "get_Idempotency_Key",
-        "summary": "GET Idempotency-Key",
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "default": 1
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 25
-            }
-          },
-          {
-            "name": "search",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Success"
@@ -6071,6 +6712,90 @@
         "required": [
           "email",
           "role"
+        ],
+        "additionalProperties": false
+      },
+      "DemoCheckout": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "invoiceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "UPI",
+              "CARD",
+              "NET_BANKING"
+            ]
+          },
+          "portion": {
+            "default": "FULL",
+            "type": "string",
+            "enum": [
+              "FULL",
+              "HALF"
+            ]
+          },
+          "scenario": {
+            "default": "SUCCESS",
+            "type": "string",
+            "enum": [
+              "SUCCESS",
+              "FAIL_ONCE",
+              "ALWAYS_FAIL"
+            ]
+          }
+        },
+        "required": [
+          "invoiceId",
+          "method"
+        ],
+        "additionalProperties": false
+      },
+      "RecoveryRetry": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "expectedRetryCount": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "SUCCESS",
+              "FAILURE"
+            ]
+          }
+        },
+        "required": [
+          "expectedRetryCount",
+          "outcome"
+        ],
+        "additionalProperties": false
+      },
+      "RecoveryPolicy": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "retryDays": {
+            "minItems": 1,
+            "maxItems": 5,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30
+            }
+          }
+        },
+        "required": [
+          "retryDays"
         ],
         "additionalProperties": false
       }
