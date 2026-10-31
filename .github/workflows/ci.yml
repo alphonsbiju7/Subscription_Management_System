@@ -25,6 +25,7 @@ jobs:
       BETTER_AUTH_URL: http://localhost:5173
       WEB_ORIGIN: http://localhost:5173
       BETTER_AUTH_SECRET: generated-for-ci-ephemeral-not-a-production-secret-2026
+      DEMO_SEED_TEST_CREDENTIALS_PATH: .local/hackathon-demo-credentials.json
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
