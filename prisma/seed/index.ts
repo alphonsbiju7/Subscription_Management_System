@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
-import { db, transaction, json, number, audit } from "../../apps/api/src/db.js";
+import { db, transaction, json, number, audit, digest } from "../../apps/api/src/db.js";
 import { auth } from "../../apps/api/src/auth.js";
 import { config } from "../../apps/api/src/config.js";
 import { contract } from "../../apps/api/src/modules/sales.js";
@@ -13,7 +13,10 @@ import { money, D } from "../../packages/billing-engine/src/index.js";
 import { ensureHackathonDemoUsers, seedHackathonDemoFixtures } from "./demo-users.js";
 if (config.NODE_ENV === "production")
   throw new Error("Demo seed is forbidden in production");
-const hackathonDemo = await ensureHackathonDemoUsers();
+const hackathonDemoCredentialsPath =
+  process.env.DEMO_SEED_TEST_CREDENTIALS_PATH ??
+  `.local/integration-demo-${digest(config.DATABASE_URL).slice(0, 12)}.json`;
+const hackathonDemo = await ensureHackathonDemoUsers(hackathonDemoCredentialsPath);
 if (await db.setting.findUnique({ where: { key: "demo-seeded" } })) {
   await seedHackathonDemoFixtures(hackathonDemo);
   console.log(
