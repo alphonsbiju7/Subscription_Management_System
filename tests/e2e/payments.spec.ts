@@ -17,7 +17,9 @@ type TestAccount = {
 const accounts = (
   JSON.parse(
     readFileSync(
-      process.env.DEMO_CREDENTIALS_PATH ?? ".local/demo-credentials.json",
+      process.env.DEMO_SEED_TEST_CREDENTIALS_PATH ??
+        process.env.DEMO_CREDENTIALS_PATH ??
+        ".local/demo-credentials.json",
       "utf8",
     ),
   ) as { accounts: TestAccount[] }
